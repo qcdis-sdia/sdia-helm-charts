@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sdia.fullname" . }}-sure
+  labels:
+    {{- include "sdia.labels" . | nindent 4 }}-sure
+spec:
+  {{- if not .Values.sure.autoscaling.enabled }}
+  replicas: {{ .Values.sure.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "sdia.selectorLabels" . | nindent 6 }}-sure
+  template:
+    metadata:
+      {{- with .Values.sure.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "sdia.selectorLabels" . | nindent 8 }}-sure
+    spec:
+      {{- with .Values.sure.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "sdia.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.sure.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-sure
+          securityContext:
+            {{- toYaml .Values.sure.securityContext | nindent 12 }}
+          image: "{{ .Values.sure.image.repository }}:{{ .Values.sure.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.sure.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /tosca-sure/1.0.0/ui/
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /tosca-sure/1.0.0/ui/
+              port: http
+          resources:
+            {{- toYaml .Values.sure.resources | nindent 12 }}
+      {{- with .Values.sure.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sure.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sure.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

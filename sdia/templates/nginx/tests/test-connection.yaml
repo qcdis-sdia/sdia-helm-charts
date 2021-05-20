@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    {{- include "sdia.labels" . | nindent 4 }}-nginx
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "sdia.fullname" . }}-nginx:{{ .Values.nginx.service.port }}']
+  restartPolicy: Never

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sdia.fullname" . }}-nginx
+  labels:
+    {{- include "sdia.labels" . | nindent 4 }}-nginx
+spec:
+  type: {{ .Values.nginx.service.type }}
+  ports:
+    - port: {{ .Values.nginx.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "sdia.selectorLabels" . | nindent 4 }}-nginx
